@@ -1,0 +1,21 @@
+{
+  "name": "cyrus-discord-bot",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Discord bot for temp-role panel, role-based DM broadcast, and welcome messages. Deployed via Railway from GitHub.",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@discordjs/voice": "^0.17.0",
+    "discord.js": "^14.19.3",
+    "better-sqlite3": "^11.10.0",
+    "dotenv": "^16.4.5"
+  }
+}
+
