@@ -15,7 +15,19 @@ db.exec(`
     welcome_channel_id TEXT,
     verify_role_id TEXT,
     verify_duration_seconds INTEGER,
-    voice_channel_id TEXT
+    voice_channel_id TEXT,
+    reg_staff_role_id TEXT,
+    staff_ping_channel_id TEXT,
+    auto_role_id TEXT,
+    stats_date_channel_id TEXT,
+    stats_total_channel_id TEXT,
+    stats_active_channel_id TEXT,
+    quarantine_role_id TEXT,
+    quarantine_seconds INTEGER,
+    ticket_parent_channel_id TEXT,
+    link_block_channel_ids TEXT,
+    bad_words TEXT,
+    automod_timeout_seconds INTEGER
   );
 
   CREATE TABLE IF NOT EXISTS dm_optout (
@@ -36,17 +48,51 @@ db.exec(`
     ON temp_roles (guild_id, expires_at_ms);
 `);
 
+// Lightweight migration for older DBs (safe to run every boot).
+for (const col of [
+  "reg_staff_role_id TEXT",
+  "staff_ping_channel_id TEXT",
+  "auto_role_id TEXT",
+  "stats_date_channel_id TEXT",
+  "stats_total_channel_id TEXT",
+  "stats_active_channel_id TEXT",
+  "quarantine_role_id TEXT",
+  "quarantine_seconds INTEGER",
+  "ticket_parent_channel_id TEXT",
+  "link_block_channel_ids TEXT",
+  "bad_words TEXT",
+  "automod_timeout_seconds INTEGER"
+]) {
+  try {
+    db.exec(`ALTER TABLE guild_config ADD COLUMN ${col};`);
+  } catch {
+    // column already exists
+  }
+}
+
 const stmtGetGuild = db.prepare(
-  "SELECT guild_id, welcome_channel_id, verify_role_id, verify_duration_seconds, voice_channel_id FROM guild_config WHERE guild_id = ?"
+  "SELECT guild_id, welcome_channel_id, verify_role_id, verify_duration_seconds, voice_channel_id, reg_staff_role_id, staff_ping_channel_id, auto_role_id, stats_date_channel_id, stats_total_channel_id, stats_active_channel_id, quarantine_role_id, quarantine_seconds, ticket_parent_channel_id, link_block_channel_ids, bad_words, automod_timeout_seconds FROM guild_config WHERE guild_id = ?"
 );
 const stmtUpsertGuild = db.prepare(`
-  INSERT INTO guild_config (guild_id, welcome_channel_id, verify_role_id, verify_duration_seconds, voice_channel_id)
-  VALUES (@guild_id, @welcome_channel_id, @verify_role_id, @verify_duration_seconds, @voice_channel_id)
+  INSERT INTO guild_config (guild_id, welcome_channel_id, verify_role_id, verify_duration_seconds, voice_channel_id, reg_staff_role_id, staff_ping_channel_id, auto_role_id, stats_date_channel_id, stats_total_channel_id, stats_active_channel_id, quarantine_role_id, quarantine_seconds, ticket_parent_channel_id, link_block_channel_ids, bad_words, automod_timeout_seconds)
+  VALUES (@guild_id, @welcome_channel_id, @verify_role_id, @verify_duration_seconds, @voice_channel_id, @reg_staff_role_id, @staff_ping_channel_id, @auto_role_id, @stats_date_channel_id, @stats_total_channel_id, @stats_active_channel_id, @quarantine_role_id, @quarantine_seconds, @ticket_parent_channel_id, @link_block_channel_ids, @bad_words, @automod_timeout_seconds)
   ON CONFLICT(guild_id) DO UPDATE SET
     welcome_channel_id = excluded.welcome_channel_id,
     verify_role_id = excluded.verify_role_id,
     verify_duration_seconds = excluded.verify_duration_seconds,
-    voice_channel_id = excluded.voice_channel_id
+    voice_channel_id = excluded.voice_channel_id,
+    reg_staff_role_id = excluded.reg_staff_role_id,
+    staff_ping_channel_id = excluded.staff_ping_channel_id,
+    auto_role_id = excluded.auto_role_id,
+    stats_date_channel_id = excluded.stats_date_channel_id,
+    stats_total_channel_id = excluded.stats_total_channel_id,
+    stats_active_channel_id = excluded.stats_active_channel_id,
+    quarantine_role_id = excluded.quarantine_role_id,
+    quarantine_seconds = excluded.quarantine_seconds,
+    ticket_parent_channel_id = excluded.ticket_parent_channel_id,
+    link_block_channel_ids = excluded.link_block_channel_ids,
+    bad_words = excluded.bad_words,
+    automod_timeout_seconds = excluded.automod_timeout_seconds
 `);
 
 export function getGuildConfig(guildId) {

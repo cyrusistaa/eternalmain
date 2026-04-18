@@ -13,12 +13,13 @@ function opt(name, fallback = undefined) {
   return value ?? fallback;
 }
 
-function optInt(name, fallback) {
+function optCsv(name) {
   const raw = process.env[name];
-  if (raw === undefined) return fallback;
-  const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed)) return fallback;
-  return parsed;
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 }
 
 export const ENV = {
@@ -27,10 +28,23 @@ export const ENV = {
   GUILD_ID: opt("GUILD_ID"),
 
   WELCOME_CHANNEL_ID: opt("WELCOME_CHANNEL_ID"),
-  VERIFY_ROLE_ID: opt("VERIFY_ROLE_ID"),
-  VERIFY_DURATION_SECONDS: optInt("VERIFY_DURATION_SECONDS", 7 * 24 * 60 * 60),
+  REG_STAFF_ROLE_ID: opt("REG_STAFF_ROLE_ID"),
+  STAFF_PING_CHANNEL_ID: opt("STAFF_PING_CHANNEL_ID"),
+  AUTO_ROLE_ID: opt("AUTO_ROLE_ID"),
+  AUTO_ROLE_IDS: optCsv("AUTO_ROLE_IDS"),
+
+  STATS_DATE_CHANNEL_ID: opt("STATS_DATE_CHANNEL_ID"),
+  STATS_TOTAL_CHANNEL_ID: opt("STATS_TOTAL_CHANNEL_ID"),
+  STATS_ACTIVE_CHANNEL_ID: opt("STATS_ACTIVE_CHANNEL_ID"),
+  STATS_UPDATE_SECONDS: Number.parseInt(opt("STATS_UPDATE_SECONDS", "300"), 10) || 300,
+  STATS_ACTIVE_MODE: opt("STATS_ACTIVE_MODE", "voice"), // presence | voice
+
+  QUARANTINE_SECONDS: Number.parseInt(opt("QUARANTINE_SECONDS", "0"), 10) || 0,
+  TICKET_PARENT_CHANNEL_ID: opt("TICKET_PARENT_CHANNEL_ID"),
+  LINK_BLOCK_CHANNEL_IDS: optCsv("LINK_BLOCK_CHANNEL_IDS"),
+  BAD_WORDS: optCsv("BAD_WORDS").map((w) => w.toLowerCase()),
+  AUTOMOD_TIMEOUT_SECONDS: Number.parseInt(opt("AUTOMOD_TIMEOUT_SECONDS", "0"), 10) || 0,
 
   VOICE_CHANNEL_ID: opt("VOICE_CHANNEL_ID"),
   STREAM_URL: opt("STREAM_URL", "https://twitch.tv/cyrus")
 };
-
